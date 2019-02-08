@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "558917677965",
+    "firebase_url": "https://mobile-ca1.firebaseio.com",
+    "project_id": "mobile-ca1",
+    "storage_bucket": "mobile-ca1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558917677965:android:26fe47b162c8f480",
+        "android_client_info": {
+          "package_name": "com.fuego.mobile_ca1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "558917677965-dsdh3gcpicen3njm8m8r3ia0e8o12hav.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQ-c1oglmRGA2eKFqooVxc-QnNOesEAbw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
