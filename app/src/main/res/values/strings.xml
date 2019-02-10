@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Fuego Constructs</string>
+    <string name="login">Log In</string>
 </resources>
