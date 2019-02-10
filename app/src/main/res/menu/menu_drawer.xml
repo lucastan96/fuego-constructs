@@ -3,6 +3,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/item_checkin"
+            android:checked="true"
             android:icon="@drawable/ic_checkin"
             android:title="Check In" />
         <item

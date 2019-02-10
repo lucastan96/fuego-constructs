@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="192dp"
-    android:background="?attr/colorPrimaryDark"
+    android:background="?attr/colorAccent"
     android:gravity="bottom"
     android:orientation="vertical"
     android:padding="16dp"
@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Logged in as lucastan96@gmail.com"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:text="Logged in as lucastan96"
+        android:textColor="@android:color/black" />
 
 </LinearLayout>
