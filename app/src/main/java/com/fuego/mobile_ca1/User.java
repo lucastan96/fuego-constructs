@@ -7,7 +7,7 @@ import java.util.Objects;
 public class User {
     private String uid;
     private String name;
-    private String assignedSite;
+    private int assignedSiteID;
     private String startTime;
     private String endTime;
     private UserType typeOfUser;
@@ -17,10 +17,10 @@ public class User {
     public User() {
     }
 
-    public User(String uid, String name, String assignedSite, String startTime, String endTime, UserType typeOfUser, Attendance attendance, GeofenceTracker geofenceTracker) {
+    public User(String uid, String name, int assignedSiteID, String startTime, String endTime, UserType typeOfUser, Attendance attendance, GeofenceTracker geofenceTracker) {
         this.uid = uid;
         this.name = name;
-        this.assignedSite = assignedSite;
+        this.assignedSiteID = assignedSiteID;
         this.startTime = startTime;
         this.endTime = endTime;
         this.typeOfUser = typeOfUser;
@@ -44,12 +44,12 @@ public class User {
         this.name = name;
     }
 
-    public String getAssignedSite() {
-        return assignedSite;
+    public int getAssignedSite() {
+        return assignedSiteID;
     }
 
-    public void setAssignedSite(String assignedSite) {
-        this.assignedSite = assignedSite;
+    public void setAssignedSite(int assignedSiteID) {
+        this.assignedSiteID = assignedSiteID;
     }
 
     public String getStartTime() {
@@ -117,7 +117,7 @@ public class User {
         return "User{" +
                 "uid='" + uid + '\'' +
                 ", name='" + name + '\'' +
-                ", assignedSite='" + assignedSite + '\'' +
+                ", assignedSite='" + assignedSiteID + '\'' +
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", typeOfUser=" + typeOfUser +
