@@ -1,6 +1,8 @@
 package com.fuego.mobile_ca1.Activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,8 +12,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -25,6 +31,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Objects;
 
+import java.util.ArrayList;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,13 +42,20 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
-    private static final int DEFAULT_ZOOM = 16;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final int DEFAULT_ZOOM = 19;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int GEOFENCE_RADIUS_IN_METERS = 200;
+    private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
 
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
     private Boolean mLocationPermissionGranted = false;
+    private ArrayList<Geofence> mGeofenceList = new ArrayList<>();
+    private PendingIntent mGeofencePendingIntent;
+    private GeofencingClient mGeofencingClient;
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private FirebaseAuth auth;
@@ -84,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map));
         checkPermission();
+        setGeofence();
     }
 
     private void checkPermission() {
@@ -128,6 +144,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void setGeofence() {
+        Geofence geofence = new Geofence.Builder()
+                .setRequestId("Google HQ")
+                .setCircularRegion(53.9881655, -6.3921485, GEOFENCE_RADIUS_IN_METERS)
+                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                        Geofence.GEOFENCE_TRANSITION_EXIT |
+                        Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(1)
+                .build();
+        mGeofenceList.add(geofence);
+        mGeofencingClient = new GeofencingClient(this);
+        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                .addOnSuccessListener(aVoid -> {
+
+                })
+                .addOnFailureListener(e -> {
+
+                });
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        return new GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
+                .addGeofences(mGeofenceList)
+                .build();
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.
+                FLAG_UPDATE_CURRENT);
+        return mGeofencePendingIntent;
     }
 
     @Override
