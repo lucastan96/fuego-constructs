@@ -1,5 +1,7 @@
 package com.fuego.mobile_ca1;
 
+import com.fuego.mobile_ca1.enums.InOrOut;
+
 import java.util.Objects;
 
 public class Attendance {
@@ -88,8 +90,4 @@ public class Attendance {
                 '}';
     }
 
-    public enum InOrOut {
-        IN,
-        OUT
-    }
 }

@@ -1,5 +1,7 @@
 package com.fuego.mobile_ca1;
 
+import com.fuego.mobile_ca1.enums.UserType;
+
 import java.util.Objects;
 
 public class User {
@@ -8,14 +10,14 @@ public class User {
     private String assignedSite;
     private String startTime;
     private String endTime;
-    private TypeOfUser typeOfUser;
+    private UserType typeOfUser;
     private Attendance attendance;
     private GeofenceTracker geofenceTracker;
 
     public User() {
     }
 
-    public User(String uid, String name, String assignedSite, String startTime, String endTime, TypeOfUser typeOfUser, Attendance attendance, GeofenceTracker geofenceTracker) {
+    public User(String uid, String name, String assignedSite, String startTime, String endTime, UserType typeOfUser, Attendance attendance, GeofenceTracker geofenceTracker) {
         this.uid = uid;
         this.name = name;
         this.assignedSite = assignedSite;
@@ -66,11 +68,11 @@ public class User {
         this.endTime = endTime;
     }
 
-    public TypeOfUser getTypeOfUser() {
+    public UserType getTypeOfUser() {
         return typeOfUser;
     }
 
-    public void setTypeOfUser(TypeOfUser typeOfUser) {
+    public void setTypeOfUser(UserType typeOfUser) {
         this.typeOfUser = typeOfUser;
     }
 
@@ -124,10 +126,6 @@ public class User {
                 '}';
     }
 
-    enum TypeOfUser {
-        WORKER,
-        ADMIN,
-    }
 }
 
 
