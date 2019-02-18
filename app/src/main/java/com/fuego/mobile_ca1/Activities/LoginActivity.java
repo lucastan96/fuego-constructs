@@ -1,8 +1,10 @@
-package com.fuego.mobile_ca1;
+package com.fuego.mobile_ca1.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+
+import com.fuego.mobile_ca1.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 

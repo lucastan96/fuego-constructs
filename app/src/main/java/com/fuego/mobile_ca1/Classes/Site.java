@@ -1,4 +1,4 @@
-package com.fuego.mobile_ca1;
+package com.fuego.mobile_ca1.Classes;
 
 public class Site {
     private int id;

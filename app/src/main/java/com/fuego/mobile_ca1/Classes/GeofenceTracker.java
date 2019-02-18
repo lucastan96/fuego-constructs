@@ -1,4 +1,4 @@
-package com.fuego.mobile_ca1;
+package com.fuego.mobile_ca1.Classes;
 
 import com.fuego.mobile_ca1.enums.InOrOut;
 
