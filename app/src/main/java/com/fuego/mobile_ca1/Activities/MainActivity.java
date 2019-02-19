@@ -1,10 +1,10 @@
 package com.fuego.mobile_ca1.Activities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,15 +23,15 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.Objects;
-
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
 
             mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+            initGeofence();
         }
     }
 
@@ -99,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map));
         checkPermission();
-        setGeofence();
     }
 
     private void checkPermission() {
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (task.isSuccessful()) {
                         mLastKnownLocation = task.getResult();
                         if (mLastKnownLocation != null) {
+                            addGeofence();
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
@@ -146,40 +148,56 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private void setGeofence() {
-        Geofence geofence = new Geofence.Builder()
-                .setRequestId("Google HQ")
-                .setCircularRegion(53.9881655, -6.3921485, GEOFENCE_RADIUS_IN_METERS)
+    private void initGeofence() {
+        mGeofencePendingIntent = getGeofencePendingIntent();
+        mGeofencingClient = LocationServices.getGeofencingClient(this);
+    }
+
+    private void addGeofence() {
+        mGeofenceList.add(new Geofence.Builder()
+                .setRequestId("geofence")
+                .setCircularRegion(
+                        mLastKnownLocation.getLatitude(),
+                        mLastKnownLocation.getLongitude(),
+                        GEOFENCE_RADIUS_IN_METERS
+                )
                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_EXIT |
-                        Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(1)
-                .build();
-        mGeofenceList.add(geofence);
-        mGeofencingClient = new GeofencingClient(this);
-        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
-                .addOnSuccessListener(aVoid -> {
-
-                })
-                .addOnFailureListener(e -> {
+                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                .build());
+        mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
+                .addOnCompleteListener(task -> {
 
                 });
+        drawCircle();
     }
 
     private GeofencingRequest getGeofencingRequest() {
-        return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
-                .addGeofences(mGeofenceList)
-                .build();
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
     }
 
     private PendingIntent getGeofencePendingIntent() {
+        if (mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.
-                FLAG_UPDATE_CURRENT);
-        return mGeofencePendingIntent;
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void drawCircle() {
+        if (mMap == null) {
+            return;
+        } else {
+            mMap.clear();
+        }
+        LatLng latLng = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+        CircleOptions mCircleOptions = new CircleOptions()
+                .center(latLng).radius(GEOFENCE_RADIUS_IN_METERS).fillColor(0x40ff0000)
+                .strokeColor(Color.TRANSPARENT).strokeWidth(2);
+        mMap.addCircle(mCircleOptions);
     }
 
     @Override
