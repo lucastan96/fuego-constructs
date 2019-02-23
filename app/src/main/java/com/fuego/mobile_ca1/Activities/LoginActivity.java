@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import com.fuego.mobile_ca1.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,10 +18,12 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     private FirebaseAuth auth;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
         emailField = findViewById(R.id.email);
         passwordField = findViewById(R.id.password);
