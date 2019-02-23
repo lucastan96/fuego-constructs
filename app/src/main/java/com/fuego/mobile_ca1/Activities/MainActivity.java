@@ -157,8 +157,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGeofenceList.add(new Geofence.Builder()
                 .setRequestId("geofence")
                 .setCircularRegion(
-                        mLastKnownLocation.getLatitude(),
-                        mLastKnownLocation.getLongitude(),
+                        53.9881911,
+                        -6.392076,
                         GEOFENCE_RADIUS_IN_METERS
                 )
                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
