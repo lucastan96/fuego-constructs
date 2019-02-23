@@ -27,8 +27,10 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private FirebaseAuth auth;
+    private FloatingActionButton fab;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -78,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
 
+
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
             mNavigationView.setNavigationItemSelectedListener(this);
@@ -85,6 +91,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             View headerView = mNavigationView.getHeaderView(0);
             TextView navUsername = headerView.findViewById(R.id.login_title);
             navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
+
+            fab = findViewById(R.id.floatingActionButton);
+            fab.setOnClickListener(v -> {
+                db.collection("users").add(auth.getCurrentUser());
+            });
 
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             assert mapFragment != null;

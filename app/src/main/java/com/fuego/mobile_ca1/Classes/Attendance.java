@@ -1,24 +1,21 @@
 package com.fuego.mobile_ca1.Classes;
 
 import com.fuego.mobile_ca1.enums.InOrOut;
-
-import java.util.Objects;
+import com.google.android.gms.maps.model.LatLng;
 
 public class Attendance {
     private String date;
     private String time;
-    private String latitude;
-    private String longitude;
+    private LatLng latLng;
     private InOrOut inOrOut;
 
     public Attendance() {
     }
 
-    public Attendance(String date, String time, String latitude, String longitude, InOrOut inOrOut) {
+    public Attendance(String date, String time, LatLng latLng, InOrOut inOrOut) {
         this.date = date;
         this.time = time;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.latLng = latLng;
         this.inOrOut = inOrOut;
     }
 
@@ -38,20 +35,12 @@ public class Attendance {
         this.time = time;
     }
 
-    public String getLatitude() {
-        return latitude;
+    public LatLng getLatLng() {
+        return latLng;
     }
 
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
-    }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
+    public void setLatLng(LatLng latLng) {
+        this.latLng = latLng;
     }
 
     public InOrOut getInOrOut() {
@@ -63,31 +52,12 @@ public class Attendance {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Attendance)) return false;
-        Attendance that = (Attendance) o;
-        return Objects.equals(getDate(), that.getDate()) &&
-                Objects.equals(getTime(), that.getTime()) &&
-                Objects.equals(getLatitude(), that.getLatitude()) &&
-                Objects.equals(getLongitude(), that.getLongitude()) &&
-                getInOrOut() == that.getInOrOut();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getDate(), getTime(), getLatitude(), getLongitude(), getInOrOut());
-    }
-
-    @Override
     public String toString() {
         return "Attendance{" +
                 "date='" + date + '\'' +
                 ", time='" + time + '\'' +
-                ", latitude='" + latitude + '\'' +
-                ", longitude='" + longitude + '\'' +
+                ", latLng=" + latLng +
                 ", inOrOut=" + inOrOut +
                 '}';
     }
-
 }
