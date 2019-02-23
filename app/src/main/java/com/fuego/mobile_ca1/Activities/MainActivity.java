@@ -31,6 +31,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -46,7 +50,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int DEFAULT_ZOOM = 19;
+    private static final int DEFAULT_ZOOM = 16;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int GEOFENCE_RADIUS_IN_METERS = 200;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
@@ -63,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FirebaseAuth auth;
     private FloatingActionButton fab;
     private FirebaseFirestore db;
+    private GeoPoint geoPoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActionBar actionbar = getSupportActionBar();
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
-
 
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
@@ -165,22 +169,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addGeofence() {
-        mGeofenceList.add(new Geofence.Builder()
-                .setRequestId("geofence")
-                .setCircularRegion(
-                        53.9881911,
-                        -6.392076,
-                        GEOFENCE_RADIUS_IN_METERS
-                )
-                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_EXIT)
-                .build());
-        mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
-                .addOnCompleteListener(task -> {
-
-                });
-        drawCircle();
+        Query query = db.collection("sites").whereEqualTo("id", 2);
+        query.get().addOnCompleteListener(taskQuery -> {
+            if (taskQuery.isSuccessful()) {
+                QuerySnapshot snapshot = taskQuery.getResult();
+                if (snapshot != null) {
+                    for (QueryDocumentSnapshot document : snapshot) {
+                        geoPoint = (GeoPoint) document.get("location");
+                        mGeofenceList.add(new Geofence.Builder()
+                                .setRequestId("geofence")
+                                .setCircularRegion(
+                                        geoPoint.getLatitude(),
+                                        geoPoint.getLongitude(),
+                                        GEOFENCE_RADIUS_IN_METERS
+                                )
+                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                                .build());
+                        mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
+                                .addOnCompleteListener(taskGeofence -> drawCircle());
+                    }
+                } else {
+                    Log.d(TAG, "addGeofence: Failed to retrieve site");
+                }
+            }
+        });
     }
 
     private GeofencingRequest getGeofencingRequest() {
@@ -204,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             mMap.clear();
         }
-        LatLng latLng = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+        LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         CircleOptions mCircleOptions = new CircleOptions()
                 .center(latLng).radius(GEOFENCE_RADIUS_IN_METERS).fillColor(0x40ff0000)
                 .strokeColor(Color.TRANSPARENT).strokeWidth(2);
