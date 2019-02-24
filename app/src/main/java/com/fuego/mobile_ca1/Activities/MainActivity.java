@@ -12,7 +12,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.fuego.mobile_ca1.Classes.Event;
+import com.fuego.mobile_ca1.Classes.GeofenceTracker;
 import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
+import com.fuego.mobile_ca1.Classes.User;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -29,7 +32,9 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
@@ -37,6 +42,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
@@ -77,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        db = FirebaseFirestore.getInstance();
+
+
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -88,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
 
+
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
             mNavigationView.setNavigationItemSelectedListener(this);
@@ -97,7 +108,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
             fab = findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(v -> db.collection("users").add(auth.getCurrentUser()));
+            fab.setOnClickListener(v -> {
+                if (auth.getUid() != null) {
+                    addEvent();
+                }
+            });
+
+            if (auth.getCurrentUser() != null) {
+                navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
+            } else {
+                navUsername.setText("Logged in as unknown");
+            }
 
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             assert mapFragment != null;
@@ -108,6 +129,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             initGeofence();
         }
     }
+
+    public void addEvent() {
+        String typeOfEvent = "in";
+        List<GeofenceTracker> geofenceTrackers = new ArrayList<>();
+        DocumentReference ref = db.collection("users").document(auth.getUid());
+        ref.get().addOnSuccessListener(documentSnapshot -> {
+            List<Event> events = (List<Event>) documentSnapshot.get("events");
+
+            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+            locationResult.addOnSuccessListener(location -> {
+                GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                Event event = new Event(new Timestamp(new Date()), geoPoint, typeOfEvent);
+                events.add(event);
+                User user = new User(auth.getUid(), "09", "17", events, geofenceTrackers);
+                db.collection("users")
+                        .document(auth.getUid())
+                        .set(user);
+            });
+        });
+    }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {

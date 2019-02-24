@@ -1,38 +1,30 @@
 package com.fuego.mobile_ca1.Classes;
 
-import com.fuego.mobile_ca1.enums.InOrOut;
+import com.google.firebase.Timestamp;
 
 public class GeofenceTracker {
 
-    private String time;
-    private InOrOut inOrOut;
+    private Timestamp time;
+    private String event;
 
-    public GeofenceTracker(String time, InOrOut inOrOut) {
+    public GeofenceTracker(Timestamp time, String event) {
         this.time = time;
-        this.inOrOut = inOrOut;
+        this.event = event;
     }
 
-    public String getTime() {
+    public Timestamp getTime() {
         return time;
     }
 
-    public void setTime(String time) {
+    public void setTime(Timestamp time) {
         this.time = time;
     }
 
-    public InOrOut getInOrOut() {
-        return inOrOut;
+    public String getEvent() {
+        return event;
     }
 
-    public void setInOrOut(InOrOut inOrOut) {
-        this.inOrOut = inOrOut;
-    }
-
-    @Override
-    public String toString() {
-        return "GeofenceTracker{" +
-                "time='" + time + '\'' +
-                ", inOrOut=" + inOrOut +
-                '}';
+    public void setEvent(String event) {
+        this.event = event;
     }
 }

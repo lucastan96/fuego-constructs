@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import com.fuego.mobile_ca1.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.appcompat.app.AppCompatActivity;
 
