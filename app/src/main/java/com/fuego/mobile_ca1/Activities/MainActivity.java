@@ -28,14 +28,11 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthCredential;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Objects;
-
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -104,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             fab = findViewById(R.id.floatingActionButton);
             fab.setOnClickListener(v -> {
+                db.collection("user");
                 db.collection("users").add(auth.getCurrentUser());
             });
         }

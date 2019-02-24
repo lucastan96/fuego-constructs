@@ -1,16 +1,19 @@
 package com.fuego.mobile_ca1.Classes;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class Site {
     private int id;
     private String name;
-    private double latitude;
-    private double longitude;
+    private LatLng location;
 
-    public Site(int id, String name, double latitude, double longitude) {
+    public Site() {
+    }
+
+    public Site(int id, String name, LatLng location) {
         this.id = id;
         this.name = name;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.location = location;
     }
 
     public int getId() {
@@ -29,20 +32,12 @@ public class Site {
         this.name = name;
     }
 
-    public double getLatitude() {
-        return latitude;
+    public LatLng getLocation() {
+        return location;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setLocation(LatLng location) {
+        this.location = location;
     }
 
     @Override
@@ -50,8 +45,7 @@ public class Site {
         return "Site{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
+                ", location=" + location +
                 '}';
     }
 }
