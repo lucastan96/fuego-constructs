@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.fuego.mobile_ca1.Classes.Event;
+import com.fuego.mobile_ca1.Classes.GeofenceTracker;
 import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.Classes.User;
 import com.fuego.mobile_ca1.R;
@@ -32,11 +33,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
@@ -112,25 +115,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             fab = findViewById(R.id.floatingActionButton);
             fab.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
-                    String typeOfEvent = "in";
-                    User user = new User(auth.getUid(), "09", "17");
-
-                    Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                    locationResult.addOnSuccessListener(location -> {
-
-                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                        Event event = new Event(new Timestamp(new Date()), geoPoint, typeOfEvent);
-                        db.collection("users")
-                                .document(auth.getUid())
-                                .set(user);
-
-                    }).addOnFailureListener(e -> {
-
-                    });
-
+                    addEvent();
                 }
             });
         }
+    }
+
+    public void addEvent() {
+        String typeOfEvent = "in";
+        List<GeofenceTracker> geofenceTrackers = new ArrayList<>();
+        DocumentReference ref = db.collection("users").document(auth.getUid());
+        ref.get().addOnSuccessListener(documentSnapshot -> {
+            List<Event> events = (List<Event>) documentSnapshot.get("events");
+
+            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+            locationResult.addOnSuccessListener(location -> {
+                GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                Event event = new Event(new Timestamp(new Date()), geoPoint, typeOfEvent);
+                events.add(event);
+                User user = new User(auth.getUid(), "09", "17", events, geofenceTrackers);
+                db.collection("users")
+                        .document(auth.getUid())
+                        .set(user);
+            });
+        });
+    }
+
+    public String getCurrentStatus() {
+        String typeOfEvent = "in";
+
+
+        return typeOfEvent;
     }
 
     @Override

@@ -22,6 +22,14 @@ public class User {
         this.endTime = endTime;
     }
 
+    public User(String uid, String startTime, String endTime, List<Event> events, List<GeofenceTracker> geofenceTracker) {
+        this.uid = uid;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.events = events;
+        this.geofenceTracker = geofenceTracker;
+    }
+
     public String getUid() {
         return uid;
     }

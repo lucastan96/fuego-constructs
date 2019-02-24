@@ -13,4 +13,37 @@ public class Event {
         this.latLng = latLng;
         this.type = type;
     }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public GeoPoint getLatLng() {
+        return latLng;
+    }
+
+    public void setLatLng(GeoPoint latLng) {
+        this.latLng = latLng;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "timestamp=" + timestamp.toString() +
+                ", latLng=" + latLng.toString() +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }
