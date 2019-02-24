@@ -94,12 +94,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             View headerView = mNavigationView.getHeaderView(0);
             TextView navUsername = headerView.findViewById(R.id.login_title);
-            navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
+            navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
             fab = findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(v -> {
-                db.collection("users").add(auth.getCurrentUser());
-            });
+            fab.setOnClickListener(v -> db.collection("users").add(auth.getCurrentUser()));
 
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             assert mapFragment != null;
@@ -169,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addGeofence() {
-        Query query = db.collection("sites").whereEqualTo("id", 2);
+        Query query = db.collection("sites").whereEqualTo("id", 3);
         query.get().addOnCompleteListener(taskQuery -> {
             if (taskQuery.isSuccessful()) {
                 QuerySnapshot snapshot = taskQuery.getResult();
@@ -221,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         CircleOptions mCircleOptions = new CircleOptions()
                 .center(latLng).radius(GEOFENCE_RADIUS_IN_METERS).fillColor(0x40ff0000)
-                .strokeColor(Color.TRANSPARENT).strokeWidth(2);
+                .strokeColor(Color.TRANSPARENT).strokeWidth(0);
         mMap.addCircle(mCircleOptions);
     }
 
