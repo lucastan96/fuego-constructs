@@ -12,7 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.fuego.mobile_ca1.Classes.Event;
 import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
+import com.fuego.mobile_ca1.Classes.User;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -28,10 +30,13 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
@@ -91,7 +96,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             View headerView = mNavigationView.getHeaderView(0);
             TextView navUsername = headerView.findViewById(R.id.login_title);
-            navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
+
+            if (auth.getCurrentUser() != null) {
+                navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
+            } else {
+                navUsername.setText("Logged in as unknown");
+            }
 
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             assert mapFragment != null;
@@ -101,8 +111,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             fab = findViewById(R.id.floatingActionButton);
             fab.setOnClickListener(v -> {
-                db.collection("user");
-                db.collection("users").add(auth.getCurrentUser());
+                if (auth.getUid() != null) {
+                    String typeOfEvent = "in";
+                    User user = new User(auth.getUid(), "09", "17");
+
+                    Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                    locationResult.addOnSuccessListener(location -> {
+
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                        Event event = new Event(new Timestamp(new Date()), geoPoint, typeOfEvent);
+                        db.collection("users")
+                                .document(auth.getUid())
+                                .set(user);
+
+                    }).addOnFailureListener(e -> {
+
+                    });
+
+                }
             });
         }
     }
