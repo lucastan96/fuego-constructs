@@ -141,12 +141,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    public String getCurrentStatus() {
-        String typeOfEvent = "in";
-
-
-        return typeOfEvent;
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
