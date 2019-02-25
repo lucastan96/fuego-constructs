@@ -6,6 +6,9 @@ public class User {
     private GeoPoint latlng;
     private boolean status;
 
+    public User() {
+    }
+
     public User(GeoPoint latlng, boolean status) {
         this.latlng = latlng;
         this.status = status;

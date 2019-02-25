@@ -9,8 +9,8 @@ import android.widget.Toast;
 import com.fuego.mobile_ca1.Classes.User;
 import com.fuego.mobile_ca1.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -42,10 +42,14 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    User user = new User(new GeoPoint(53.981966, -6.39108), false);
-                    db.collection("users")
-                            .document(auth.getUid())
-                            .set(user);
+
+                    DocumentReference ref = db.collection("users").document(auth.getUid());
+                    ref.get().addOnSuccessListener(snapshot -> {
+                        if (!snapshot.exists()) {
+                            User user = new User();
+                            ref.set(user);
+                        }
+                    });
 
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
