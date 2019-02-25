@@ -7,15 +7,13 @@ public class Event {
     private String uid;
     private Timestamp timestamp;
     private GeoPoint latLng;
-    private String type;
-    private String direction;
+    private Boolean type;
 
-    public Event(String uid, Timestamp timestamp, GeoPoint latLng, String type, String direction) {
+    public Event(String uid, Timestamp timestamp, GeoPoint latLng, Boolean type) {
         this.uid = uid;
         this.timestamp = timestamp;
         this.latLng = latLng;
         this.type = type;
-        this.direction = direction;
     }
 
     public String getUid() {
@@ -42,20 +40,12 @@ public class Event {
         this.latLng = latLng;
     }
 
-    public String getType() {
+    public Boolean getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Boolean type) {
         this.type = type;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(String direction) {
-        this.direction = direction;
     }
 
     @Override
@@ -64,8 +54,7 @@ public class Event {
                 "uid='" + uid + '\'' +
                 ", timestamp=" + timestamp +
                 ", latLng=" + latLng +
-                ", type='" + type + '\'' +
-                ", direction='" + direction + '\'' +
+                ", type=" + type +
                 '}';
     }
 }
