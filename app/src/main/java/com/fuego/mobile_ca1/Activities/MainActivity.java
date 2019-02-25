@@ -1,6 +1,7 @@
 package com.fuego.mobile_ca1.Activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aniket.mutativefloatingactionbutton.MutativeFab;
 import com.fuego.mobile_ca1.Classes.Event;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
@@ -73,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private FirebaseAuth auth;
-    private FloatingActionButton btnCheckin, btnMyLocation;
+    private FloatingActionButton btnMyLocation;
+    private MutativeFab btnCheckin;
     private FirebaseFirestore db;
     private GeoPoint geoPoint;
     private ConstraintLayout siteNameLayout;
@@ -145,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void addEvent(boolean type) {
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(documentSnapshot -> {
-            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+            @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                 Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
@@ -160,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setSiteName() {
-        Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+        @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
 
         locationResult.addOnSuccessListener(location -> {
             Geocoder geocoder;
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             try {
                 addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                 String name = addresses.get(0).getAddressLine(0);
-                siteName.setText("Site: " + name);
+                siteName.setText(name);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -246,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGeofencingClient = LocationServices.getGeofencingClient(this);
     }
 
+    @SuppressLint("MissingPermission")
     private void addGeofence() {
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(snapshot -> {
