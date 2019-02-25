@@ -14,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fuego.mobile_ca1.Classes.Event;
-import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
+import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;

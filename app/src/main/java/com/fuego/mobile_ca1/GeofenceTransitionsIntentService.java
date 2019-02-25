@@ -1,4 +1,4 @@
-package com.fuego.mobile_ca1.Classes;
+package com.fuego.mobile_ca1;
 
 import android.app.IntentService;
 import android.app.Notification;
@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.fuego.mobile_ca1.Activities.MainActivity;
-import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
