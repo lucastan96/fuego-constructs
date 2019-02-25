@@ -5,6 +5,8 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,8 +39,11 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
@@ -70,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton fab;
     private FirebaseFirestore db;
     private GeoPoint geoPoint;
+    private TextView siteName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActionBar actionbar = getSupportActionBar();
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+            siteName = findViewById(R.id.siteName);
 
 
             mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -122,7 +129,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
 
             mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
+            setSiteName();
+            addListener();
             initGeofence();
         }
     }
@@ -141,6 +149,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(this, "Checked out", Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+    }
+
+    public void setSiteName() {
+        Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+
+        locationResult.addOnSuccessListener(location -> {
+            Geocoder geocoder;
+            List<Address> addresses;
+            geocoder = new Geocoder(this, Locale.getDefault());
+            try {
+                addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                String name = addresses.get(0).getAddressLine(0);
+                siteName.setText("Site: " + name);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void addListener() {
+        final DocumentReference ref = db.collection("users").document(auth.getUid());
+        ref.addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+            setSiteName();
         });
     }
 
