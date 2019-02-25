@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                 Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
                 db.collection("events").add(event);
-                if (type){
+                if (type) {
                     Toast.makeText(this, "Checked in", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Checked out", Toast.LENGTH_SHORT).show();

@@ -4,12 +4,10 @@ import com.google.firebase.firestore.GeoPoint;
 
 public class User {
     private GeoPoint latlng;
-    private String site;
     private boolean status;
 
-    public User(GeoPoint latlng, String site, boolean status) {
+    public User(GeoPoint latlng, boolean status) {
         this.latlng = latlng;
-        this.site = site;
         this.status = status;
     }
 
@@ -19,14 +17,6 @@ public class User {
 
     public void setLatlng(GeoPoint latlng) {
         this.latlng = latlng;
-    }
-
-    public String getSite() {
-        return site;
-    }
-
-    public void setSite(String site) {
-        this.site = site;
     }
 
     public boolean isStatus() {
@@ -41,7 +31,6 @@ public class User {
     public String toString() {
         return "User{" +
                 "latlng=" + latlng +
-                ", site='" + site + '\'' +
                 ", status=" + status +
                 '}';
     }

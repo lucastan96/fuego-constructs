@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    User user = new User(new GeoPoint(53.981966, -6.39108), "P.J. Carrolls", false);
+                    User user = new User(new GeoPoint(53.981966, -6.39108), false);
                     db.collection("users")
                             .document(auth.getUid())
                             .set(user);
