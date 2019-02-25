@@ -160,14 +160,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setSiteName() {
-        Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-
-        locationResult.addOnSuccessListener(location -> {
+        DocumentReference reference = db.collection("users").document(auth.getUid());
+        reference.get().addOnSuccessListener(snapshot -> {
             Geocoder geocoder;
             List<Address> addresses;
-            geocoder = new Geocoder(this, Locale.getDefault());
+            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             try {
-                addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                GeoPoint g = snapshot.getGeoPoint("latlng");
+                addresses = geocoder.getFromLocation(g.getLatitude(), g.getLongitude(), 1);
                 String name = addresses.get(0).getAddressLine(0);
                 siteName.setText("Site: " + name);
 
