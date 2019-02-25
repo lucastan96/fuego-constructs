@@ -2,11 +2,8 @@ package com.fuego.mobile_ca1.Classes;
 
 import android.app.IntentService;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -20,7 +17,9 @@ import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.TaskStackBuilder;
+import androidx.core.app.NotificationManagerCompat;
+
+import static com.fuego.mobile_ca1.App.CHANNEL_1_ID;
 
 public class GeofenceTransitionsIntentService extends IntentService {
     private static final String TAG = GeofenceTransitionsIntentService.class.getSimpleName();
@@ -32,6 +31,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+        assert geofencingEvent != null;
         if (geofencingEvent.hasError()) {
             Log.d(TAG, "onHandleIntent: Error code " + geofencingEvent.getErrorCode());
             return;
@@ -45,15 +45,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
                     triggeringGeofences);
             Log.d(TAG, "onHandleIntent: " + geofenceTransitionDetails);
 
-            String notificationTitle = "", notificationText = "";
+            String notificationTitle = "", notificationText = "", notificationAction = "";
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 notificationTitle = "Just entered the construction site";
-                notificationText = "";
+                notificationText = "Have fun at work!";
+                notificationAction = "Check In";
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 notificationTitle = "Just left the construction site";
-                notificationText = "";
+                notificationText = "See you tomorrow!";
+                notificationAction = "Check Out";
             }
-            sendNotification(notificationTitle, notificationText);
+            sendNotification(notificationTitle, notificationText, notificationAction);
         } else {
             Log.d(TAG, "onHandleIntent: Invalid transition type");
         }
@@ -80,21 +82,21 @@ public class GeofenceTransitionsIntentService extends IntentService {
         }
     }
 
-    private void sendNotification(String notificationTitle, String notificationText) {
-        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(notificationIntent);
-        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(),
-                        R.mipmap.ic_launcher_round))
+    private void sendNotification(String notificationTitle, String notificationText, String notificationAction) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(notificationTitle)
                 .setContentText(notificationText)
-                .setContentIntent(notificationPendingIntent);
-        builder.setAutoCancel(true);
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(0, builder.build());
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .addAction(R.color.colorPrimary, notificationAction, pendingIntent)
+                .build();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(1, notification);
     }
 }

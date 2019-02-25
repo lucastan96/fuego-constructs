@@ -35,9 +35,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -80,9 +77,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        db = FirebaseFirestore.getInstance();
-
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -202,31 +196,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addGeofence() {
-        Query query = db.collection("users").whereEqualTo("uid", auth.getUid());
-        query.get().addOnCompleteListener(taskQuery -> {
-            if (taskQuery.isSuccessful()) {
-                QuerySnapshot snapshot = taskQuery.getResult();
-                if (snapshot != null) {
-                    for (QueryDocumentSnapshot document : snapshot) {
-                        geoPoint = (GeoPoint) document.get("latlng");
-                        mGeofenceList.add(new Geofence.Builder()
-                                .setRequestId("geofence")
-                                .setCircularRegion(
-                                        geoPoint.getLatitude(),
-                                        geoPoint.getLongitude(),
-                                        GEOFENCE_RADIUS_IN_METERS
-                                )
-                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                                        Geofence.GEOFENCE_TRANSITION_EXIT)
-                                .build());
-                        mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
-                                .addOnCompleteListener(taskGeofence -> drawCircle());
-                    }
-                } else {
-                    Log.d(TAG, "addGeofence: Failed to retrieve site");
-                }
-            }
+        DocumentReference ref = db.collection("users").document("hau2cqlRsTMoV68YL3gVrlKcNv33");
+        ref.get().addOnSuccessListener(snapshot -> {
+            geoPoint = snapshot.getGeoPoint("latlng");
+            mGeofenceList.add(new Geofence.Builder()
+                    .setRequestId("geofence")
+                    .setCircularRegion(
+                            geoPoint.getLatitude(),
+                            geoPoint.getLongitude(),
+                            GEOFENCE_RADIUS_IN_METERS
+                    )
+                    .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                            Geofence.GEOFENCE_TRANSITION_EXIT)
+                    .build());
+            mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
+                    .addOnCompleteListener(taskGeofence -> drawCircle());
         });
     }
 
