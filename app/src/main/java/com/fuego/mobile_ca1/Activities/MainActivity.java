@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private FirebaseAuth auth;
-    private FloatingActionButton fab;
+    private FloatingActionButton btnCheckin, btnMyLocation;
     private FirebaseFirestore db;
     private GeoPoint geoPoint;
     private ConstraintLayout siteNameLayout;
@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             TextView navUsername = headerView.findViewById(R.id.login_title);
             navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
-            fab = findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(v -> {
+            btnCheckin = findViewById(R.id.btn_checkin);
+            btnCheckin.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
                     DocumentReference reference = db.collection("users").document(auth.getUid());
                     reference.get().addOnSuccessListener(snapshot -> {
@@ -121,6 +121,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
                 }
             });
+
+            btnMyLocation = findViewById(R.id.btn_mylocation);
+            btnMyLocation.setOnClickListener(v -> checkPermission());
 
             if (auth.getCurrentUser() != null) {
                 navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
@@ -189,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map));
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
         checkPermission();
     }
 
@@ -222,11 +226,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         mLastKnownLocation = task.getResult();
                         if (mLastKnownLocation != null) {
                             addGeofence();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                         } else {
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(53.305494, -7.737649), 6));
                         }
                     }
