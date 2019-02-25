@@ -1,10 +1,10 @@
 package com.fuego.mobile_ca1.Activities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +26,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.Task;
@@ -36,6 +37,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,7 +57,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int DEFAULT_ZOOM = 19;
+    private static final int DEFAULT_ZOOM = 16;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int GEOFENCE_RADIUS_IN_METERS = 200;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
@@ -70,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FirebaseAuth auth;
     private FloatingActionButton fab;
     private FirebaseFirestore db;
+    private GeoPoint geoPoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         db = FirebaseFirestore.getInstance();
 
@@ -99,6 +105,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             View headerView = mNavigationView.getHeaderView(0);
             TextView navUsername = headerView.findViewById(R.id.login_title);
+            navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
+
+            fab = findViewById(R.id.floatingActionButton);
+            fab.setOnClickListener(v -> {
+                if (auth.getUid() != null) {
+                    addEvent();
+                }
+            });
 
             if (auth.getCurrentUser() != null) {
                 navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
@@ -112,12 +126,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-            fab = findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(v -> {
-                if (auth.getUid() != null) {
-                    addEvent();
-                }
-            });
+            initGeofence();
         }
     }
 
@@ -147,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map));
         checkPermission();
-        setGeofence();
     }
 
     private void checkPermission() {
@@ -179,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (task.isSuccessful()) {
                         mLastKnownLocation = task.getResult();
                         if (mLastKnownLocation != null) {
+                            addGeofence();
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
@@ -194,40 +203,66 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private void setGeofence() {
-        Geofence geofence = new Geofence.Builder()
-                .setRequestId("Google HQ")
-                .setCircularRegion(53.9881655, -6.3921485, GEOFENCE_RADIUS_IN_METERS)
-                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_EXIT |
-                        Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(1)
-                .build();
-        mGeofenceList.add(geofence);
-        mGeofencingClient = new GeofencingClient(this);
-        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
-                .addOnSuccessListener(aVoid -> {
+    private void initGeofence() {
+        mGeofencePendingIntent = getGeofencePendingIntent();
+        mGeofencingClient = LocationServices.getGeofencingClient(this);
+    }
 
-                })
-                .addOnFailureListener(e -> {
-
-                });
+    private void addGeofence() {
+        Query query = db.collection("sites").whereEqualTo("id", 3);
+        query.get().addOnCompleteListener(taskQuery -> {
+            if (taskQuery.isSuccessful()) {
+                QuerySnapshot snapshot = taskQuery.getResult();
+                if (snapshot != null) {
+                    for (QueryDocumentSnapshot document : snapshot) {
+                        geoPoint = (GeoPoint) document.get("location");
+                        mGeofenceList.add(new Geofence.Builder()
+                                .setRequestId("geofence")
+                                .setCircularRegion(
+                                        geoPoint.getLatitude(),
+                                        geoPoint.getLongitude(),
+                                        GEOFENCE_RADIUS_IN_METERS
+                                )
+                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                                .build());
+                        mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
+                                .addOnCompleteListener(taskGeofence -> drawCircle());
+                    }
+                } else {
+                    Log.d(TAG, "addGeofence: Failed to retrieve site");
+                }
+            }
+        });
     }
 
     private GeofencingRequest getGeofencingRequest() {
-        return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
-                .addGeofences(mGeofenceList)
-                .build();
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
     }
 
     private PendingIntent getGeofencePendingIntent() {
+        if (mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.
-                FLAG_UPDATE_CURRENT);
-        return mGeofencePendingIntent;
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void drawCircle() {
+        if (mMap == null) {
+            return;
+        } else {
+            mMap.clear();
+        }
+        LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
+        CircleOptions mCircleOptions = new CircleOptions()
+                .center(latLng).radius(GEOFENCE_RADIUS_IN_METERS).fillColor(0x40ff0000)
+                .strokeColor(Color.TRANSPARENT).strokeWidth(0);
+        mMap.addCircle(mCircleOptions);
     }
 
     @Override
