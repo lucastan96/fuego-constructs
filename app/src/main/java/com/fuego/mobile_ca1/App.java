@@ -24,14 +24,14 @@ public class App extends Application {
                     "Channel 1",
                     NotificationManager.IMPORTANCE_HIGH
             );
-            channel1.setDescription("This is channel 1"); //Change to more useful description
+            channel1.setDescription("High importance channel for check-in and check-out"); //Change to more useful description
 
             NotificationChannel channel2 = new NotificationChannel(
                     CHANNEL_2_ID,
                     "Channel 2",
                     NotificationManager.IMPORTANCE_LOW
             );
-            channel2.setDescription("This is channel 2"); //Change to more useful description
+            channel2.setDescription("Low importance channel for geofence tracker"); //Change to more useful description
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             Objects.requireNonNull(manager).createNotificationChannel(channel1);
