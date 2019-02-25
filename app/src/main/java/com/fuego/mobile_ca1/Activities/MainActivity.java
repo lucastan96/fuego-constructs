@@ -205,19 +205,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(snapshot -> {
             geoPoint = snapshot.getGeoPoint("latlng");
-            mGeofenceList.add(new Geofence.Builder()
-                    .setRequestId("geofence")
-                    .setCircularRegion(
-                            geoPoint.getLatitude(),
-                            geoPoint.getLongitude(),
-                            GEOFENCE_RADIUS_IN_METERS
-                    )
-                    .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                            Geofence.GEOFENCE_TRANSITION_EXIT)
-                    .build());
-            mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
-                    .addOnCompleteListener(taskGeofence -> drawCircle());
+            if (geoPoint != null) {
+                mGeofenceList.add(new Geofence.Builder()
+                        .setRequestId("geofence")
+                        .setCircularRegion(
+                                geoPoint.getLatitude(),
+                                geoPoint.getLongitude(),
+                                GEOFENCE_RADIUS_IN_METERS
+                        )
+                        .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .build());
+                mGeofencingClient.addGeofences(getGeofencingRequest(), mGeofencePendingIntent)
+                        .addOnCompleteListener(taskGeofence -> drawCircle());
+            }
         });
     }
 
