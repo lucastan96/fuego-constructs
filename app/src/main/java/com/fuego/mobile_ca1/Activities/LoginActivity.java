@@ -26,8 +26,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
-
         emailField = findViewById(R.id.email);
         passwordField = findViewById(R.id.password);
 
@@ -42,11 +40,9 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailField.getText().toString();
         String password = passwordField.getText().toString();
 
-
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-
-                    User user = new User(new GeoPoint(53.981966, 6.39108), "P.J. Carrolls", false);
+                    User user = new User(new GeoPoint(53.981966, -6.39108), "P.J. Carrolls", false);
                     db.collection("users")
                             .document(auth.getUid())
                             .set(user);
