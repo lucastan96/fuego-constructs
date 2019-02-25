@@ -202,13 +202,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addGeofence() {
-        Query query = db.collection("sites").whereEqualTo("id", 3);
+        Query query = db.collection("users").whereEqualTo("uid", auth.getUid());
         query.get().addOnCompleteListener(taskQuery -> {
             if (taskQuery.isSuccessful()) {
                 QuerySnapshot snapshot = taskQuery.getResult();
                 if (snapshot != null) {
                     for (QueryDocumentSnapshot document : snapshot) {
-                        geoPoint = (GeoPoint) document.get("location");
+                        geoPoint = (GeoPoint) document.get("latlng");
                         mGeofenceList.add(new Geofence.Builder()
                                 .setRequestId("geofence")
                                 .setCircularRegion(
