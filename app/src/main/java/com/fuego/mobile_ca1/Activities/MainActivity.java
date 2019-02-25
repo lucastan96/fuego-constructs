@@ -50,6 +50,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton fab;
     private FirebaseFirestore db;
     private GeoPoint geoPoint;
+    private ConstraintLayout siteNameLayout;
     private TextView siteName;
 
     @Override
@@ -95,8 +97,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActionBar actionbar = getSupportActionBar();
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
-            siteName = findViewById(R.id.siteName);
-
+            actionbar.setElevation(8);
+            siteNameLayout = findViewById(R.id.site_name_layout);
+            siteNameLayout.setElevation(8);
+            siteName = findViewById(R.id.site_name);
 
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
