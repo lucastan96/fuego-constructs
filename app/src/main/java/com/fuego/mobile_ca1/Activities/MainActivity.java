@@ -126,20 +126,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
     public void addEvent(boolean type) {
-        DocumentReference ref = db.collection("users").document(auth.getUid());
+        DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(documentSnapshot -> {
             Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                 Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
-                db.collection("events")
-                        .add(event);
+                db.collection("events").add(event);
             });
         });
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -199,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addGeofence() {
-        DocumentReference ref = db.collection("users").document("hau2cqlRsTMoV68YL3gVrlKcNv33");
+        DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(snapshot -> {
             geoPoint = snapshot.getGeoPoint("latlng");
             mGeofenceList.add(new Geofence.Builder()
