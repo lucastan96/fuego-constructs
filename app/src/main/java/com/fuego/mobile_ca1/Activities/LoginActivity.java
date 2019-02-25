@@ -6,9 +6,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.fuego.mobile_ca1.Classes.User;
 import com.fuego.mobile_ca1.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,12 +19,13 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailField;
     private EditText passwordField;
     private FirebaseAuth auth;
-
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
 
         emailField = findViewById(R.id.email);
@@ -32,14 +35,22 @@ public class LoginActivity extends AppCompatActivity {
         btnSignin.setOnClickListener(v -> signIn());
 
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
     }
 
     private void signIn() {
         String email = emailField.getText().toString();
         String password = passwordField.getText().toString();
 
+
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
+
+                    User user = new User(new GeoPoint(53.981966, 6.39108), "P.J. Carrolls", false);
+                    db.collection("users")
+                            .document(auth.getUid())
+                            .set(user);
+
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                     finish();

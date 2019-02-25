@@ -107,7 +107,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             fab = findViewById(R.id.floatingActionButton);
             fab.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
-                    addEvent();
+                    DocumentReference reference = db.collection("users").document(auth.getUid());
+                    reference.get().addOnSuccessListener(snapshot -> {
+                        boolean status = snapshot.getBoolean("status");
+                        addEvent(!status);
+                        reference.update("status", !status);
+                    });
                 }
             });
 
@@ -128,15 +133,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void addEvent() {
-        String type = "check";
-        String direction = "in";
+    public void addEvent(boolean type) {
         DocumentReference ref = db.collection("users").document(auth.getUid());
         ref.get().addOnSuccessListener(documentSnapshot -> {
             Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type, direction);
+                Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
                 db.collection("events")
                         .add(event);
             });
