@@ -16,7 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fuego.mobile_ca1.Classes.Event;
-import com.fuego.mobile_ca1.Classes.GeofenceTransitionsIntentService;
+import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -50,6 +50,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -72,9 +73,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private FirebaseAuth auth;
-    private FloatingActionButton fab;
+    private FloatingActionButton btnCheckin, btnMyLocation;
     private FirebaseFirestore db;
     private GeoPoint geoPoint;
+    private ConstraintLayout siteNameLayout;
     private TextView siteName;
 
     @Override
@@ -95,8 +97,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActionBar actionbar = getSupportActionBar();
             Objects.requireNonNull(actionbar).setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
-            siteName = findViewById(R.id.siteName);
-
+            actionbar.setElevation(8);
+            siteNameLayout = findViewById(R.id.site_name_layout);
+            siteNameLayout.setElevation(8);
+            siteName = findViewById(R.id.site_name);
 
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
@@ -106,8 +110,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             TextView navUsername = headerView.findViewById(R.id.login_title);
             navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
-            fab = findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(v -> {
+            btnCheckin = findViewById(R.id.btn_checkin);
+            btnCheckin.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
                     DocumentReference reference = db.collection("users").document(auth.getUid());
                     reference.get().addOnSuccessListener(snapshot -> {
@@ -117,6 +121,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
                 }
             });
+
+            btnMyLocation = findViewById(R.id.btn_mylocation);
+            btnMyLocation.setOnClickListener(v -> checkPermission());
 
             if (auth.getCurrentUser() != null) {
                 navUsername.setText("Logged in as " + auth.getCurrentUser().getEmail());
@@ -185,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map));
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
         checkPermission();
     }
 
@@ -218,11 +226,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         mLastKnownLocation = task.getResult();
                         if (mLastKnownLocation != null) {
                             addGeofence();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                         } else {
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(53.305494, -7.737649), 6));
                         }
                     }
