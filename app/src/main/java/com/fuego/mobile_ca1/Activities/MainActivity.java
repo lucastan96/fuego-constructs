@@ -32,14 +32,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -107,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             siteNameLayout = findViewById(R.id.site_name_layout);
             siteNameLayout.setElevation(8);
             siteName = findViewById(R.id.site_name);
+            siteName.setText("Loading...");
 
             mDrawerLayout = findViewById(R.id.drawer_layout);
             mNavigationView = findViewById(R.id.drawer_menu);
@@ -327,6 +326,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.addCircle(mCircleOptions);
     }
 
+    private void removeGeofence() {
+        if (mMap != null) {
+            mMap.clear();
+        }
+        if (mGeofencingClient != null) {
+            mGeofencingClient.removeGeofences(mGeofencePendingIntent);
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -341,6 +349,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.item_logout:
+                removeGeofence();
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
