@@ -32,12 +32,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ConstraintLayout siteNameLayout;
     private TextView siteName;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,11 +119,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             btnCheckin = findViewById(R.id.btn_checkin);
             btnCheckin.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
-                    DocumentReference reference = db.collection("users").document(auth.getUid());
-                    reference.get().addOnSuccessListener(snapshot -> {
+                    DocumentReference ref = db.collection("users").document(auth.getUid());
+                    ref.get().addOnSuccessListener(snapshot -> {
                         boolean status = snapshot.getBoolean("status");
                         addEvent(!status);
-                        reference.update("status", !status);
+                        ref.update("status", !status);
+                        if (status) {
+                            btnCheckin.setFabText("Check In");
+                        } else {
+                            btnCheckin.setFabText("Check Out");
+                        }
                     });
                 }
             });
@@ -140,12 +148,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
             setSiteName();
-            addListener();
+            setCheckInText();
+            addListeners();
             initGeofence();
         }
     }
 
-    public void addEvent(boolean type) {
+    private void addEvent(boolean type) {
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.get().addOnSuccessListener(documentSnapshot -> {
             @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
@@ -154,34 +163,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
                 db.collection("events").add(event);
                 if (type) {
-                    Toast.makeText(this, "Checked in", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "You are now checked in", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Checked out", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "You are now checked out", Toast.LENGTH_SHORT).show();
                 }
             });
         });
     }
 
-    public void setSiteName() {
-        DocumentReference reference = db.collection("users").document(auth.getUid());
-        reference.get().addOnSuccessListener(snapshot -> {
+    private void setSiteName() {
+        DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
+        ref.get().addOnSuccessListener(snapshot -> {
             Geocoder geocoder;
-            List<Address> addresses;
+            List<Address> addresses = null;
             geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             try {
                 GeoPoint g = snapshot.getGeoPoint("latlng");
-                addresses = geocoder.getFromLocation(g.getLatitude(), g.getLongitude(), 1);
-                String name = addresses.get(0).getAddressLine(0);
+                if (g != null) {
+                    addresses = geocoder.getFromLocation(g.getLatitude(), g.getLongitude(), 1);
+                }
+                String name = null;
+                if (addresses != null) {
+                    name = addresses.get(0).getAddressLine(0);
+                }
                 siteName.setText(name);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void addListener() {
-        final DocumentReference ref = db.collection("users").document(auth.getUid());
+    private void setCheckInText() {
+        final DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
+        ref.get().addOnSuccessListener(snapshot -> {
+            Boolean currentStatus = snapshot.getBoolean("status");
+            if (currentStatus != null) {
+                if (currentStatus) {
+                    btnCheckin.setFabText("Check Out");
+                } else {
+                    btnCheckin.setFabText("Check In");
+                }
+            }
+        });
+    }
+
+    private void addListeners() {
+        final DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
         ref.addSnapshotListener((snapshot, e) -> {
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);

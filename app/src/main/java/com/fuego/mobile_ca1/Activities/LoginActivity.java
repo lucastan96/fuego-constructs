@@ -12,6 +12,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Objects;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -42,8 +44,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-
-                    DocumentReference ref = db.collection("users").document(auth.getUid());
+                    DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
                     ref.get().addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) {
                             User user = new User();
