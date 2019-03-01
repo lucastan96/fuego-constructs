@@ -64,8 +64,9 @@ public class GeofenceTransitionsIntentService extends IntentService {
             mSharedPreferences = getApplicationContext().getSharedPreferences("geofence", Context.MODE_PRIVATE);
             mEditor = mSharedPreferences.edit();
 
+            boolean geofenceStatus = mSharedPreferences.getBoolean("inside", false);
             String notificationTitle = "", notificationText = "";
-            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER && !geofenceStatus) {
                 notificationTitle = "Just entered the construction site";
                 notificationText = "Have fun at work!";
 

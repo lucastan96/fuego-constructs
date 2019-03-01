@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ConstraintLayout siteNameLayout;
     private TextView siteName;
     private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -120,6 +121,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
             mSharedPreferences = getApplicationContext().getSharedPreferences("geofence", Context.MODE_PRIVATE);
+            mEditor = mSharedPreferences.edit();
+            mEditor.putBoolean("inside", false);
+            mEditor.apply();
 
             btnCheckin = findViewById(R.id.btn_checkin);
             btnCheckin.setOnClickListener(v -> {
