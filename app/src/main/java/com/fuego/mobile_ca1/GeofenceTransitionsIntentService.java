@@ -3,7 +3,9 @@ package com.fuego.mobile_ca1;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.text.TextUtils;
 import android.util.Log;
@@ -32,6 +34,8 @@ public class GeofenceTransitionsIntentService extends IntentService {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private Event event;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
 
     public GeofenceTransitionsIntentService() {
         super(TAG);
@@ -57,21 +61,29 @@ public class GeofenceTransitionsIntentService extends IntentService {
                     triggeringGeofences);
             Log.d(TAG, "onHandleIntent: " + geofenceTransitionDetails);
 
+            mSharedPreferences = getApplicationContext().getSharedPreferences("geofence", Context.MODE_PRIVATE);
+            mEditor = mSharedPreferences.edit();
+
             String notificationTitle = "", notificationText = "";
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 notificationTitle = "Just entered the construction site";
                 notificationText = "Have fun at work!";
 
+                mEditor.putBoolean("inside", true);
+
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, true);
                 db.collection("geofence").add(event);
-
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 notificationTitle = "Just left the construction site";
                 notificationText = "See you tomorrow!";
 
+                mEditor.putBoolean("inside", false);
+
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, false);
                 db.collection("geofence").add(event);
             }
+
+            mEditor.apply();
             sendNotification(notificationTitle, notificationText);
         } else {
             Log.d(TAG, "onHandleIntent: Invalid transition type");

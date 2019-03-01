@@ -3,7 +3,9 @@ package com.fuego.mobile_ca1.Activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GeoPoint geoPoint;
     private ConstraintLayout siteNameLayout;
     private TextView siteName;
+    private SharedPreferences mSharedPreferences;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -116,18 +119,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             TextView navUsername = headerView.findViewById(R.id.login_title);
             navUsername.setText("Logged in as " + Objects.requireNonNull(auth.getCurrentUser()).getEmail());
 
+            mSharedPreferences = getApplicationContext().getSharedPreferences("geofence", Context.MODE_PRIVATE);
+
             btnCheckin = findViewById(R.id.btn_checkin);
             btnCheckin.setOnClickListener(v -> {
                 if (auth.getUid() != null) {
                     DocumentReference ref = db.collection("users").document(auth.getUid());
                     ref.get().addOnSuccessListener(snapshot -> {
                         boolean status = snapshot.getBoolean("status");
-                        addEvent(!status);
-                        ref.update("status", !status);
-                        if (status) {
-                            btnCheckin.setFabText("Check In");
+                        boolean geofenceStatus = mSharedPreferences.getBoolean("inside", true);
+                        if (!status) {
+                            if (geofenceStatus) {
+                                addEvent(!status);
+                                ref.update("status", !status);
+                                btnCheckin.setFabText("Check Out");
+                            }
                         } else {
-                            btnCheckin.setFabText("Check Out");
+                            addEvent(!status);
+                            ref.update("status", !status);
+                            btnCheckin.setFabText("Check In");
                         }
                     });
                 }
