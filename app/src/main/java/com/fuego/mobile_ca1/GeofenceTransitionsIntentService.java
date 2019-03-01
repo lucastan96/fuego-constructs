@@ -30,7 +30,7 @@ import static com.fuego.mobile_ca1.App.CHANNEL_1_ID;
 public class GeofenceTransitionsIntentService extends IntentService {
     private static final String TAG = GeofenceTransitionsIntentService.class.getSimpleName();
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private FirebaseAuth auth =  FirebaseAuth.getInstance();
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
     private Event event;
 
     public GeofenceTransitionsIntentService() {
@@ -57,11 +57,10 @@ public class GeofenceTransitionsIntentService extends IntentService {
                     triggeringGeofences);
             Log.d(TAG, "onHandleIntent: " + geofenceTransitionDetails);
 
-            String notificationTitle = "", notificationText = "", notificationAction = "";
+            String notificationTitle = "", notificationText = "";
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 notificationTitle = "Just entered the construction site";
                 notificationText = "Have fun at work!";
-                notificationAction = "Check In";
 
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, true);
                 db.collection("geofence").add(event);
@@ -69,12 +68,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 notificationTitle = "Just left the construction site";
                 notificationText = "See you tomorrow!";
-                notificationAction = "Check Out";
 
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, false);
                 db.collection("geofence").add(event);
             }
-            sendNotification(notificationTitle, notificationText, notificationAction);
+            sendNotification(notificationTitle, notificationText);
         } else {
             Log.d(TAG, "onHandleIntent: Invalid transition type");
         }
@@ -101,7 +99,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
         }
     }
 
-    private void sendNotification(String notificationTitle, String notificationText, String notificationAction) {
+    private void sendNotification(String notificationTitle, String notificationText) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
@@ -112,7 +110,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 .setContentText(notificationText)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                .addAction(R.color.colorPrimary, notificationAction, pendingIntent)
                 .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
