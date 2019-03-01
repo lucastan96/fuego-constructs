@@ -32,6 +32,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -319,7 +320,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             mMap.clear();
         }
+
         LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
+
+        MarkerOptions mMarkerOptions = new MarkerOptions();
+        mMarkerOptions.position(latLng);
+        mMap.addMarker(mMarkerOptions);
+
         CircleOptions mCircleOptions = new CircleOptions()
                 .center(latLng).radius(GEOFENCE_RADIUS_IN_METERS).fillColor(0x40ff0000)
                 .strokeColor(Color.TRANSPARENT).strokeWidth(0);
