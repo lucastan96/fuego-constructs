@@ -4,14 +4,21 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.location.Location;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.fuego.mobile_ca1.Activities.MainActivity;
+import com.fuego.mobile_ca1.Classes.Event;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import androidx.annotation.Nullable;
@@ -22,6 +29,9 @@ import static com.fuego.mobile_ca1.App.CHANNEL_1_ID;
 
 public class GeofenceTransitionsIntentService extends IntentService {
     private static final String TAG = GeofenceTransitionsIntentService.class.getSimpleName();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth auth =  FirebaseAuth.getInstance();
+    private Event event;
 
     public GeofenceTransitionsIntentService() {
         super(TAG);
@@ -40,6 +50,9 @@ public class GeofenceTransitionsIntentService extends IntentService {
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL || geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
                 geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            Location location = geofencingEvent.getTriggeringLocation();
+            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition,
                     triggeringGeofences);
             Log.d(TAG, "onHandleIntent: " + geofenceTransitionDetails);
@@ -49,10 +62,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 notificationTitle = "Just entered the construction site";
                 notificationText = "Have fun at work!";
                 notificationAction = "Check In";
+
+                event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, true);
+                db.collection("geofence").add(event);
+
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 notificationTitle = "Just left the construction site";
                 notificationText = "See you tomorrow!";
                 notificationAction = "Check Out";
+
+                event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, false);
+                db.collection("geofence").add(event);
             }
             sendNotification(notificationTitle, notificationText, notificationAction);
         } else {
