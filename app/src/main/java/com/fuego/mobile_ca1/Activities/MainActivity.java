@@ -137,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 addEvent(!status);
                                 ref.update("status", !status);
                                 btnCheckin.setFabText("Check Out");
+                            } else {
+                                Toast.makeText(this, "Please enter site to check in", Toast.LENGTH_LONG).show();
                             }
                         } else {
                             addEvent(!status);

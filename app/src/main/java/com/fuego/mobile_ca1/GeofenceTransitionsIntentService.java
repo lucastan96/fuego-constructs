@@ -62,7 +62,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
             Log.d(TAG, "onHandleIntent: " + geofenceTransitionDetails);
 
             mSharedPreferences = getApplicationContext().getSharedPreferences("geofence", Context.MODE_PRIVATE);
-            mEditor = mSharedPreferences.edit();
+
 
             boolean geofenceStatus = mSharedPreferences.getBoolean("inside", false);
             String notificationTitle = "", notificationText = "";
@@ -70,22 +70,29 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 notificationTitle = "Just entered the construction site";
                 notificationText = "Have fun at work!";
 
+                mEditor = mSharedPreferences.edit();
                 mEditor.putBoolean("inside", true);
+                mEditor.apply();
 
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, true);
                 db.collection("geofence").add(event);
+
+                sendNotification(notificationTitle, notificationText);
+
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 notificationTitle = "Just left the construction site";
                 notificationText = "See you tomorrow!";
 
+                mEditor = mSharedPreferences.edit();
                 mEditor.putBoolean("inside", false);
+                mEditor.apply();
 
                 event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, false);
                 db.collection("geofence").add(event);
+
+                sendNotification(notificationTitle, notificationText);
             }
 
-            mEditor.apply();
-            sendNotification(notificationTitle, notificationText);
         } else {
             Log.d(TAG, "onHandleIntent: Invalid transition type");
         }
