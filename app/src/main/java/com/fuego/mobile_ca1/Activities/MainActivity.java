@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import com.aniket.mutativefloatingactionbutton.MutativeFab;
 import com.fuego.mobile_ca1.Classes.Event;
+import com.fuego.mobile_ca1.ConstructsBroadcastReciever;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -86,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView siteName;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
+    private ConstructsBroadcastReciever mReceiver;
+    private IntentFilter filter;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -95,6 +99,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+
+        //Broadcast Receiver Code--------------------------------------------
+        mReceiver = new ConstructsBroadcastReciever();
+        filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        this.registerReceiver(mReceiver, filter);
+        //-------------------------------------------------------------------
+
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -381,5 +394,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        this.unregisterReceiver(mReceiver);
+        super.onDestroy();
     }
 }
