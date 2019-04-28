@@ -21,6 +21,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.aniket.mutativefloatingactionbutton.MutativeFab;
 import com.fuego.mobile_ca1.Classes.Event;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
@@ -54,23 +63,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
-
     private static final int DEFAULT_ZOOM = 16;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int GEOFENCE_RADIUS_IN_METERS = 200;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
-
+    private boolean wifiState;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
@@ -90,11 +89,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
 
+    private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int wifiStateExtra = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+
+            switch (wifiStateExtra) {
+                case WifiManager.WIFI_STATE_ENABLED:
+                    wifiState = true;
+                    break;
+                case WifiManager.WIFI_STATE_DISABLED:
+                    wifiState = false;
+                    break;
+            }
+        }
+    };
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -131,26 +147,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             btnCheckin = findViewById(R.id.btn_checkin);
             btnCheckin.setOnClickListener(v -> {
-                if (auth.getUid() != null) {
-                    DocumentReference ref = db.collection("users").document(auth.getUid());
-                    ref.get().addOnSuccessListener(snapshot -> {
-                        boolean status = snapshot.getBoolean("status");
-                        boolean geofenceStatus = mSharedPreferences.getBoolean("inside", true);
-                        if (!status) {
-                            if (geofenceStatus) {
+                if (wifiState) {
+                    if (auth.getUid() != null) {
+                        DocumentReference ref = db.collection("users").document(auth.getUid());
+                        ref.get().addOnSuccessListener(snapshot -> {
+                            boolean status = snapshot.getBoolean("status");
+                            boolean geofenceStatus = mSharedPreferences.getBoolean("inside", true);
+                            if (!status) {
+                                if (geofenceStatus) {
+                                    addEvent(!status);
+                                    ref.update("status", !status);
+                                    btnCheckin.setFabText("Check Out");
+                                } else {
+                                    Toast.makeText(this, "Please enter site to check in", Toast.LENGTH_LONG).show();
+                                }
+                            } else {
                                 addEvent(!status);
                                 ref.update("status", !status);
-                                btnCheckin.setFabText("Check Out");
-                            } else {
-                                Toast.makeText(this, "Please enter site to check in", Toast.LENGTH_LONG).show();
+                                btnCheckin.setFabText("Check In");
                             }
-                        } else {
-                            addEvent(!status);
-                            ref.update("status", !status);
-                            btnCheckin.setFabText("Check In");
-                        }
-                    });
+                        });
+                    }
+                } else {
+                    Toast.makeText(this, "Enable Wifi to check in", Toast.LENGTH_SHORT).show();
                 }
+
             });
 
             btnMyLocation = findViewById(R.id.btn_mylocation);
@@ -186,22 +207,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.unregisterReceiver(wifiStateReceiver);
         super.onDestroy();
     }
-
-    private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int wifiStateExtra = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
-
-            switch (wifiStateExtra){
-                case WifiManager.WIFI_STATE_ENABLED:
-                    Toast.makeText(context, "WIFI ON", Toast.LENGTH_SHORT).show();
-                    break;
-                case WifiManager.WIFI_STATE_DISABLED:
-                    Toast.makeText(context, "WIFI OFF", Toast.LENGTH_SHORT).show();
-                    break;
-            }
-        }
-    };
 
     private void addEvent(boolean type) {
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
@@ -286,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
