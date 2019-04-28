@@ -4,9 +4,11 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -15,6 +17,10 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +39,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.aniket.mutativefloatingactionbutton.MutativeFab;
 import com.fuego.mobile_ca1.Classes.Event;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
+import com.fuego.mobile_ca1.MessengerService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -102,6 +109,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     wifiState = false;
                     break;
             }
+        }
+    };
+
+    private Messenger mService = null;
+    private boolean mBound;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mService = new Messenger(service);
+            mBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            mService = null;
+            mBound = false;
         }
     };
 
@@ -200,6 +222,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onStart();
         IntentFilter intentFilter = new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION);
         registerReceiver(wifiStateReceiver, intentFilter);
+        bindService(new Intent(this, MessengerService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     @Override
@@ -210,6 +242,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, "onDestroy: " + e);
         }
         super.onDestroy();
+    }
+
+    private void sayHello() {
+        if (!mBound) return;
+        // Create and send a message to the service, using a supported 'what' value
+        Message msg = Message.obtain(null, MessengerService.MSG_SAY_HELLO, 0, 0);
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private void addEvent(boolean type) {
