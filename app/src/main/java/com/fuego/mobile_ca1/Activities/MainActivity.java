@@ -3,6 +3,7 @@ package com.fuego.mobile_ca1.Activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -12,6 +13,7 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -21,7 +23,6 @@ import android.widget.Toast;
 
 import com.aniket.mutativefloatingactionbutton.MutativeFab;
 import com.fuego.mobile_ca1.Classes.Event;
-import com.fuego.mobile_ca1.ConstructsBroadcastReciever;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -88,8 +89,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView siteName;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
-    private ConstructsBroadcastReciever mReceiver;
-    private IntentFilter filter;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -99,14 +98,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-
-        //Broadcast Receiver Code--------------------------------------------
-        mReceiver = new ConstructsBroadcastReciever();
-        filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
-        this.registerReceiver(mReceiver, filter);
-        //-------------------------------------------------------------------
 
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -182,6 +173,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             initGeofence();
         }
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter intentFilter = new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        registerReceiver(wifiStateReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        this.unregisterReceiver(wifiStateReceiver);
+        super.onDestroy();
+    }
+
+    private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int wifiStateExtra = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+
+            switch (wifiStateExtra){
+                case WifiManager.WIFI_STATE_ENABLED:
+                    Toast.makeText(context, "WIFI ON", Toast.LENGTH_SHORT).show();
+                    break;
+                case WifiManager.WIFI_STATE_DISABLED:
+                    Toast.makeText(context, "WIFI OFF", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 
     private void addEvent(boolean type) {
         DocumentReference ref = db.collection("users").document(Objects.requireNonNull(auth.getUid()));
@@ -396,9 +416,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
-    @Override
-    protected void onDestroy() {
-        this.unregisterReceiver(mReceiver);
-        super.onDestroy();
-    }
+
 }
