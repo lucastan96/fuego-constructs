@@ -204,7 +204,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onDestroy() {
-        this.unregisterReceiver(wifiStateReceiver);
+        try {
+            this.unregisterReceiver(wifiStateReceiver);
+        } catch (Exception e) {
+            Log.d(TAG, "onDestroy: " + e);
+        }
         super.onDestroy();
     }
 
