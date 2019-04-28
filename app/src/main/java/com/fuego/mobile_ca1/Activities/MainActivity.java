@@ -41,6 +41,7 @@ import com.fuego.mobile_ca1.Classes.Event;
 import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.MessengerService;
 import com.fuego.mobile_ca1.R;
+import com.fuego.mobile_ca1.TimeService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -57,15 +58,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
+import com.fuego.mobile_ca1.TimeService.MyLocalBinder;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -95,6 +96,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView siteName;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
+    TimeService myService;
+    boolean isBound = false;
+
+    private ServiceConnection localConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            MyLocalBinder binder = (MyLocalBinder) service;
+            myService = binder.getService();
+            isBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName arg0) {
+            isBound = false;
+        }
+    };
 
     private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
         @Override
@@ -138,11 +154,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         db = FirebaseFirestore.getInstance();
 
 
+
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
         } else {
+            Intent intent = new Intent(this, TimeService.class);
+            bindService(intent, localConnection, Context.BIND_AUTO_CREATE);
             Toolbar toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
             ActionBar actionbar = getSupportActionBar();
@@ -261,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                Event event = new Event(auth.getUid(), new Timestamp(new Date()), geoPoint, type);
+                Event event = new Event(auth.getUid(), myService.getCurrentTime(), geoPoint, type);
                 db.collection("events").add(event);
                 if (type) {
                     Toast.makeText(this, "You are now checked in", Toast.LENGTH_SHORT).show();
