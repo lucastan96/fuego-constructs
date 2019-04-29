@@ -58,6 +58,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -67,6 +68,7 @@ import com.fuego.mobile_ca1.TimeService.MyLocalBinder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -152,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
 
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -280,7 +281,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                Event event = new Event(auth.getUid(), myService.getCurrentTime(), geoPoint, type);
+
+                Timestamp currentTime;
+
+                if(myService.getCurrentTime() != null) {
+                    currentTime = myService.getCurrentTime();
+                }else{
+                    currentTime = new Timestamp(new Date());
+                }
+
+
+                Event event = new Event(auth.getUid(), currentTime, geoPoint, type);
                 db.collection("events").add(event);
                 if (type) {
                     Toast.makeText(this, "You are now checked in", Toast.LENGTH_SHORT).show();
