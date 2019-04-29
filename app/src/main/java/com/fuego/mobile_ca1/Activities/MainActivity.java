@@ -119,9 +119,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             switch (wifiStateExtra) {
                 case WifiManager.WIFI_STATE_ENABLED:
+                    Toast.makeText(context, "Wifi is on", Toast.LENGTH_SHORT).show();
                     wifiState = true;
                     break;
                 case WifiManager.WIFI_STATE_DISABLED:
+                    Toast.makeText(context, "Wifi is off", Toast.LENGTH_SHORT).show();
                     wifiState = false;
                     break;
             }
