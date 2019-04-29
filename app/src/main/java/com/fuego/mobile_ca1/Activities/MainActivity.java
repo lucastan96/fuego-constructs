@@ -267,7 +267,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void addEventThruService(Timestamp currentTime, GeoPoint geoPoint, boolean type) {
         if (!mBound) return;
         Event event = new Event(auth.getUid(), currentTime, geoPoint, type);
-        Message msg = Message.obtain(null, MessengerService.MSG_SAY_HELLO, event, 0);
+        Message msg = Message.obtain(null, MessengerService.MSG_SAY_HELLO);
+        msg.obj = event;
         try {
             mService.send(msg);
         } catch (RemoteException e) {
