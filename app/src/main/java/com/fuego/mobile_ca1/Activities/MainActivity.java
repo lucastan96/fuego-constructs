@@ -42,6 +42,7 @@ import com.fuego.mobile_ca1.GeofenceTransitionsIntentService;
 import com.fuego.mobile_ca1.MessengerService;
 import com.fuego.mobile_ca1.R;
 import com.fuego.mobile_ca1.TimeService;
+import com.fuego.mobile_ca1.TimeService.MyLocalBinder;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -64,11 +65,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
-import com.fuego.mobile_ca1.TimeService.MyLocalBinder;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -281,16 +279,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @SuppressLint("MissingPermission") Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-
-                Timestamp currentTime;
-
-                if(myService.getCurrentTime() != null) {
-                    currentTime = myService.getCurrentTime();
-                }else{
-                    currentTime = new Timestamp(new Date());
-                }
-
-
+                Timestamp currentTime = myService.getCurrentTime();
                 Event event = new Event(auth.getUid(), currentTime, geoPoint, type);
                 db.collection("events").add(event);
                 if (type) {

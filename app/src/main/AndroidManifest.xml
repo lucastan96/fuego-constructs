@@ -32,6 +32,11 @@
         <service android:name=".GeofenceTransitionsIntentService" />
 
         <service
+            android:name=".TimeService"
+            android:enabled="true"
+            android:exported="true"></service>
+
+        <service
             android:name=".MessengerService"
             android:enabled="true"
             android:exported="true"></service>
