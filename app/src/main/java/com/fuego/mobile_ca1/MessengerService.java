@@ -21,7 +21,7 @@ public class MessengerService extends Service {
                 Event event = (Event) msg.obj;
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 db.collection("events").add(event);
-                Toast.makeText(getApplicationContext(), "Hello!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Event has been recorded.", Toast.LENGTH_SHORT).show();
             } else {
                 super.handleMessage(msg);
             }
