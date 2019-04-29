@@ -8,6 +8,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.widget.Toast;
 
+import com.fuego.mobile_ca1.Classes.Event;
+
 public class MessengerService extends Service {
     public static final int MSG_SAY_HELLO = 1;
 
@@ -15,6 +17,8 @@ public class MessengerService extends Service {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == MSG_SAY_HELLO) {
+
+                db.collection("events").add(event);
                 Toast.makeText(getApplicationContext(), "Hello!", Toast.LENGTH_SHORT).show();
             } else {
                 super.handleMessage(msg);

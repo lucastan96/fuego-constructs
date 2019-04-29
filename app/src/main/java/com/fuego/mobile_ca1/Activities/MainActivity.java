@@ -264,10 +264,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onDestroy();
     }
 
-    private void sayHello() {
+    private void addEventThruService(Timestamp currentTime, GeoPoint geoPoint, boolean type) {
         if (!mBound) return;
-        // Create and send a message to the service, using a supported 'what' value
-        Message msg = Message.obtain(null, MessengerService.MSG_SAY_HELLO, 0, 0);
+        Event event = new Event(auth.getUid(), currentTime, geoPoint, type);
+        Message msg = Message.obtain(null, MessengerService.MSG_SAY_HELLO, event, 0);
         try {
             mService.send(msg);
         } catch (RemoteException e) {
@@ -282,8 +282,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationResult.addOnSuccessListener(location -> {
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                 Timestamp currentTime = myService.getCurrentTime();
-                Event event = new Event(auth.getUid(), currentTime, geoPoint, type);
-                db.collection("events").add(event);
+                addEventThruService(currentTime, geoPoint, type);
                 if (type) {
                     Toast.makeText(this, "You are now checked in", Toast.LENGTH_SHORT).show();
                 } else {
